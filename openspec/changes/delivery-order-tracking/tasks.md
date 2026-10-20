@@ -35,6 +35,6 @@
 
 ## 6. Verificação integrada
 
-- [ ] 6.1 Executar cenário completo com operador e dois clientes: catálogo, compra, consulta isolada, preparo, entrega e cancelamentos; verificar respostas HTTP e dados persistidos através da cadeia real de autenticação.
-- [ ] 6.2 Testar encerramento e reabertura do contexto com o mesmo H2 temporário em arquivo; verificar login, catálogo, histórico de preços, vínculos e status preservados.
-- [ ] 6.3 Executar `./mvnw verify` e conferir README contra os fluxos integrados; concluir somente com suíte aprovada e sem tarefas de implementação pendentes.
+- [x] 6.1 Executar cenário completo com operador e dois clientes: catálogo, compra, consulta isolada, preparo, entrega e cancelamentos; verificar respostas HTTP e dados persistidos através da cadeia real de autenticação.
+- [x] 6.2 Testar encerramento e reabertura do contexto com o mesmo H2 temporário em arquivo; verificar login, catálogo, histórico de preços, vínculos e status preservados.
+- [x] 6.3 Executar `./mvnw verify` e conferir README contra os fluxos integrados; concluir somente com suíte aprovada e sem tarefas de implementação pendentes.
