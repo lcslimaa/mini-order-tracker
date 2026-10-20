@@ -117,3 +117,23 @@ curl http://localhost:8080/api/orders/1 -H "Authorization: Bearer $CLIENT_TOKEN"
 Criação retorna 201 com `id`, `customer` (ID, nome e email), `address`, `items`, `total`, `status` e `createdAt`. Cada item contém `productId`, `name`, `unitPrice`, `quantity` e `subtotal`. Duas unidades de 12,50 e uma de 5,00 totalizam 30,00. Não há taxa de entrega.
 
 `GET /api/orders` retorna array ordenado por ID, sem paginação. Clientes veem somente seus pedidos; operadores veem todos. `GET /api/orders/{id}` retorna 404 para ID inexistente ou pedido de outro cliente. Os nomes e preços dos itens e o endereço são preservados no pedido, independentemente de alterações posteriores no catálogo. Dados inválidos retornam 400 sem criar pedido parcial.
+
+## Status e cancelamento
+
+O pedido começa em `RECEBIDO`. Somente o operador avança uma etapa por vez:
+
+```text
+RECEBIDO --> EM_PREPARO --> SAIU_PARA_ENTREGA --> ENTREGUE
+```
+
+O cliente pode cancelar o próprio pedido somente em `RECEBIDO`. O operador pode cancelar em `RECEBIDO`, `EM_PREPARO` e `SAIU_PARA_ENTREGA`. `ENTREGUE` e `CANCELADO` são finais.
+
+```sh
+curl -X PATCH http://localhost:8080/api/orders/1/status \
+  -H "Authorization: Bearer $OPERATOR_TOKEN" -H 'Content-Type: application/json' \
+  -d '{"status":"EM_PREPARO"}'
+curl -X POST http://localhost:8080/api/orders/1/cancel \
+  -H "Authorization: Bearer $CLIENT_TOKEN"
+```
+
+O operador também pode enviar `{"status":"CANCELADO"}` ao endpoint de status, com as mesmas regras. Alterações válidas retornam 200 com o pedido atualizado; saltos, regressões, repetições, cancelamento fora do estado permitido ou alterações após finalização retornam 409. Status desconhecido retorna 400. Disputas concorrentes preservam uma alteração e retornam 409 para a outra; consulte novamente antes de tentar outra ação.

@@ -12,10 +12,18 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
     public record CreateItem(@NotNull @Positive Long productId,@NotNull @Positive Integer quantity) {}
     public record CreateOrder(@NotBlank @Size(max=1000) String address,@NotEmpty List<@NotNull @Valid CreateItem> items) {}
+    public record ChangeStatus(@NotNull OrderStatus status) {}
     private final OrderService service;
     public OrderController(OrderService service) { this.service=service; }
     @PostMapping @ResponseStatus(HttpStatus.CREATED)
     OrderView create(@AuthenticationPrincipal Identity identity,@Valid @RequestBody CreateOrder body) { return service.create(identity,body); }
     @GetMapping List<OrderView> list(@AuthenticationPrincipal Identity identity) { return service.list(identity); }
     @GetMapping("/{id}") OrderView get(@PathVariable Long id,@AuthenticationPrincipal Identity identity) { return service.get(id,identity); }
+
+    @PatchMapping("/{id}/status")
+    OrderView changeStatus(@PathVariable Long id,@AuthenticationPrincipal Identity identity,@Valid @RequestBody ChangeStatus body) {
+        return service.changeStatus(id,identity,body.status());
+    }
+    @PostMapping("/{id}/cancel")
+    OrderView cancel(@PathVariable Long id,@AuthenticationPrincipal Identity identity) { return service.cancel(id,identity); }
 }
