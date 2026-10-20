@@ -46,7 +46,21 @@ export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 ./mvnw verify
 ```
 
-Antes de iniciar com `./mvnw spring-boot:run`, configure o segredo JWT e, se necessário, o operador conforme a seção Autenticação.
+O Spring Boot carrega automaticamente o arquivo `.env` na pasta de trabalho, sem plugin do IntelliJ e sem executar `source` ou `export`. Na primeira configuração de um clone:
+
+```sh
+cp .env.example .env
+```
+
+Preencha `JWT_SECRET` e `OPERATOR_PASSWORD` no `.env` antes de iniciar. Gere um segredo JWT com `openssl rand -hex 32`. O arquivo usa formato Java properties: escreva `CHAVE=valor`, sem `export` e sem aspas delimitadoras. O `.env` contém credenciais locais e é ignorado pelo Git; somente `.env.example` é versionado.
+
+No IntelliJ, use JDK 21 e defina **Working directory** como `$PROJECT_DIR$` na configuração de execução de `MiniOrderTrackerApplication`. Depois, clique em Run. Pelo terminal, execute na raiz:
+
+```sh
+./mvnw spring-boot:run
+```
+
+O arquivo é opcional para ambientes que fornecem configuração externa. Variáveis de ambiente do sistema e argumentos de linha de comando têm prioridade sobre o `.env`. Os testes mantêm configurações próprias e banco isolado.
 
 O banco padrão é `jdbc:h2:file:./data/tracker`, com migrações Flyway versionadas.
 `DATABASE_URL`, `DATABASE_USERNAME` e `DATABASE_PASSWORD` permitem configurar o armazenamento.
@@ -58,14 +72,17 @@ O console web H2 está desabilitado. Credenciais e arquivos de banco não devem 
 A aplicação exige `JWT_SECRET` externo com ao menos 32 bytes. O JWT expira em 3600 segundos por padrão (`JWT_TTL_SECONDS`).
 Para provisionar o operador no primeiro início, defina as três variáveis `OPERATOR_NAME`, `OPERATOR_EMAIL` e `OPERATOR_PASSWORD`. A configuração é opcional, mas parcial é rejeitada. Se o operador já existe, reinicializações preservam sua senha; email pertencente a cliente não é promovido.
 
-```sh
-export JWT_SECRET="$(openssl rand -hex 32)"
-export OPERATOR_NAME='Operador'
-export OPERATOR_EMAIL='operador@example.com'
-read -r -s OPERATOR_PASSWORD
-export OPERATOR_PASSWORD
-./mvnw spring-boot:run
+Os nomes de configuração no `.env` são:
+
+```properties
+JWT_SECRET=preencha-com-segredo-aleatorio-de-pelo-menos-32-bytes
+JWT_TTL_SECONDS=3600
+OPERATOR_NAME=Operador
+OPERATOR_EMAIL=operador@example.com
+OPERATOR_PASSWORD=preencha-com-sua-senha-local
 ```
+
+Use os valores definidos no seu arquivo para fazer login do operador. Se o banco já contém esse operador, mudar a senha no `.env` não altera a senha persistida.
 
 Mantenha o mesmo segredo entre reinicializações para preservar a validade dos tokens emitidos.
 A senha deve ser não vazia e conter no máximo 72 bytes UTF-8, sem truncamento; nunca é devolvida pela API. Login com senha acima desse limite retorna o mesmo 401 de credenciais inválidas.
