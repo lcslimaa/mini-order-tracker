@@ -2,9 +2,9 @@
 
 ## 1. Fundação e persistência
 
-- [ ] 1.1 Criar projeto Java/Spring Boot com Maven Wrapper e dependências Web, Security, Validation, JPA, JWT, H2, migrações e testes; verificar compilação com `./mvnw test` e inicialização do contexto.
-- [ ] 1.2 Criar migração inicial de usuários, produtos, pedidos e itens, incluindo email único, referências, valores decimais e versões; verificar aplicação da migração em banco vazio e validação do esquema na reabertura.
-- [ ] 1.3 Configurar H2 em arquivo e perfil de testes isolado; documentar execução e caminho dos dados no README e verificar inicialização usando a configuração documentada.
+- [x] 1.1 Criar projeto Java/Spring Boot com Maven Wrapper e dependências Web, Security, Validation, JPA, JWT, H2, migrações e testes; verificar compilação com `./mvnw test` e inicialização do contexto.
+- [x] 1.2 Criar migração inicial de usuários, produtos, pedidos e itens, incluindo email único, referências, valores decimais e versões; verificar aplicação da migração em banco vazio e validação do esquema na reabertura.
+- [x] 1.3 Configurar H2 em arquivo e perfil de testes isolado; documentar execução e caminho dos dados no README e verificar inicialização usando a configuração documentada.
 
 ## 2. Autenticação e segurança
 
