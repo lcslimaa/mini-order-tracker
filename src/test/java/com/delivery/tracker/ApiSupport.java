@@ -32,4 +32,15 @@ abstract class ApiSupport {
         assertThat(result.status()).isEqualTo(201);
         return login(email,"client-password");
     }
+
+    long product(String operator,String name,double price) throws Exception {
+        var result=request("POST","/products",operator,Map.of("name",name,"price",price));
+        assertThat(result.status()).isEqualTo(201);
+        return result.body().path("id").asLong();
+    }
+    long order(String customer,long product) throws Exception {
+        var result=request("POST","/orders",customer,Map.of("address","Rua Teste, 10", "items",java.util.List.of(Map.of("productId",product,"quantity",1))));
+        assertThat(result.status()).isEqualTo(201);
+        return result.body().path("id").asLong();
+    }
 }

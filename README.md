@@ -100,3 +100,20 @@ curl http://localhost:8080/api/products -H "Authorization: Bearer $OPERATOR_TOKE
 ```
 
 A criação retorna 201 e assume `available: true` quando omitido. Edição exige os três campos e retorna 200; produto inexistente retorna 404. Dados inválidos retornam 400 sem alteração persistida.
+
+## Pedidos
+
+Somente clientes criam pedidos em `POST /api/orders`. Envie endereço textual (até 1000 caracteres) e itens com `productId` e `quantity` inteira positiva. Produtos precisam existir e estar disponíveis; IDs repetidos são rejeitados. O cliente vem do token e os valores vêm do catálogo: campos de proprietário, status, preço ou total são rejeitados.
+
+```sh
+# Defina CLIENT_TOKEN com o accessToken do cliente e use IDs reais do catálogo.
+curl -X POST http://localhost:8080/api/orders \
+  -H "Authorization: Bearer $CLIENT_TOKEN" -H 'Content-Type: application/json' \
+  -d '{"address":"Rua A, 10","items":[{"productId":1,"quantity":2},{"productId":2,"quantity":1}]}'
+curl http://localhost:8080/api/orders -H "Authorization: Bearer $CLIENT_TOKEN"
+curl http://localhost:8080/api/orders/1 -H "Authorization: Bearer $CLIENT_TOKEN"
+```
+
+Criação retorna 201 com `id`, `customer` (ID, nome e email), `address`, `items`, `total`, `status` e `createdAt`. Cada item contém `productId`, `name`, `unitPrice`, `quantity` e `subtotal`. Duas unidades de 12,50 e uma de 5,00 totalizam 30,00. Não há taxa de entrega.
+
+`GET /api/orders` retorna array ordenado por ID, sem paginação. Clientes veem somente seus pedidos; operadores veem todos. `GET /api/orders/{id}` retorna 404 para ID inexistente ou pedido de outro cliente. Os nomes e preços dos itens e o endereço são preservados no pedido, independentemente de alterações posteriores no catálogo. Dados inválidos retornam 400 sem criar pedido parcial.
