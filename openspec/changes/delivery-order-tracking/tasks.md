@@ -8,10 +8,10 @@
 
 ## 2. Autenticação e segurança
 
-- [ ] 2.1 Implementar cadastro CLIENTE com normalização de email, BCrypt, DTOs e rejeição de campos privilegiados; testar cadastro válido, email duplicado inclusive concorrente, entrada inválida, perfil forjado e ausência de senha/hash nas respostas.
-- [ ] 2.2 Implementar login e JWT com assinatura, expiração configurável e segredo externo; testar credenciais válidas, credenciais inválidas, token expirado, adulterado e assinado com outra chave.
-- [ ] 2.3 Configurar cadeia stateless, autorização por perfil e erros JSON uniformes; testar 401 nas rotas protegidas sem token e 403 em ações de operador solicitadas por cliente.
-- [ ] 2.4 Implementar provisionamento idempotente do operador; testar primeira criação, reinicialização sem sobrescrita, configuração parcial e colisão com CLIENTE; documentar variáveis de configuração e obter token seguindo o exemplo documentado.
+- [x] 2.1 Implementar cadastro CLIENTE com normalização de email, BCrypt, DTOs e rejeição de campos privilegiados; testar cadastro válido, email duplicado inclusive concorrente, entrada inválida, perfil forjado e ausência de senha/hash nas respostas.
+- [x] 2.2 Implementar login e JWT com assinatura, expiração configurável e segredo externo; testar credenciais válidas, credenciais inválidas, token expirado, adulterado e assinado com outra chave.
+- [x] 2.3 Configurar cadeia stateless, autorização por perfil e erros JSON uniformes; testar 401 nas rotas protegidas sem token e 403 em ações de operador solicitadas por cliente.
+- [x] 2.4 Implementar provisionamento idempotente do operador; testar primeira criação, reinicialização sem sobrescrita, configuração parcial e colisão com CLIENTE; documentar variáveis de configuração e obter token seguindo o exemplo documentado.
 
 ## 3. Catálogo
 

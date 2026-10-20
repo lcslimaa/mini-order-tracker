@@ -51,3 +51,34 @@ O banco padrão é `jdbc:h2:file:./data/tracker`, com migrações Flyway version
 `DATABASE_URL`, `DATABASE_USERNAME` e `DATABASE_PASSWORD` permitem configurar o armazenamento.
 Os testes usam H2 isolado em memória e arquivos temporários para verificar reabertura.
 O console web H2 está desabilitado. Credenciais e arquivos de banco não devem ser versionados.
+
+## Autenticação
+
+A aplicação exige `JWT_SECRET` externo com ao menos 32 bytes. O JWT expira em 3600 segundos por padrão (`JWT_TTL_SECONDS`).
+Para provisionar o operador no primeiro início, defina as três variáveis `OPERATOR_NAME`, `OPERATOR_EMAIL` e `OPERATOR_PASSWORD`. A configuração é opcional, mas parcial é rejeitada. Se o operador já existe, reinicializações preservam sua senha; email pertencente a cliente não é promovido.
+
+```sh
+export JWT_SECRET="$(openssl rand -hex 32)"
+export OPERATOR_NAME='Operador'
+export OPERATOR_EMAIL='operador@example.com'
+read -r -s OPERATOR_PASSWORD
+export OPERATOR_PASSWORD
+./mvnw spring-boot:run
+```
+
+Mantenha o mesmo segredo entre reinicializações para preservar a validade dos tokens emitidos.
+A senha aceita de 1 a 72 bytes UTF-8, sem truncamento; nunca é devolvida pela API.
+O cadastro público sempre cria `CLIENTE` e rejeita campos de perfil. Email é normalizado para minúsculas, sem espaços externos.
+
+```sh
+curl -X POST http://localhost:8080/api/auth/register \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Ana","email":"ana@example.com","password":"senha-local"}'
+curl -X POST http://localhost:8080/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"ana@example.com","password":"senha-local"}'
+```
+
+Login retorna `accessToken`, `tokenType: "Bearer"` e `expiresIn`. Use `Authorization: Bearer <accessToken>` em todas as rotas de catálogo e pedidos. Para login do operador, use seu email e senha de provisionamento. Não há refresh token nem revogação por logout neste MVP.
+
+Erros retornam JSON com `status`, `code` e `message`. Autenticação ausente ou inválida retorna 401; perfil sem permissão retorna 403; entrada inválida retorna 400 e email duplicado retorna 409.
