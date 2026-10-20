@@ -21,10 +21,10 @@
 
 ## 4. Criação e consulta de pedidos
 
-- [ ] 4.1 Implementar criação transacional pelo cliente autenticado com captura de dados do catálogo, endereço textual e total em BigDecimal; testar preços históricos, cálculo 30,00 do cenário, estado RECEBIDO e vínculo ao proprietário.
-- [ ] 4.2 Validar itens, produtos, quantidades, endereço e campos proibidos; testar produtos repetidos, inexistentes e indisponíveis, dados forjados, perfil OPERADOR e rollback sem pedido parcial.
-- [ ] 4.3 Implementar listagem e consulta por ID com escopo por proprietário e consulta global do operador; testar dois clientes, lista vazia, IDs inexistentes e 404 sem vazamento para pedido de terceiro.
-- [ ] 4.4 Documentar contratos de criação e consulta com exemplos de token, itens e valores retornados; verificar exemplos com cenários HTTP equivalentes.
+- [x] 4.1 Implementar criação transacional pelo cliente autenticado com captura de dados do catálogo, endereço textual e total em BigDecimal; testar preços históricos, cálculo 30,00 do cenário, estado RECEBIDO e vínculo ao proprietário.
+- [x] 4.2 Validar itens, produtos, quantidades, endereço e campos proibidos; testar produtos repetidos, inexistentes e indisponíveis, dados forjados, perfil OPERADOR e rollback sem pedido parcial.
+- [x] 4.3 Implementar listagem e consulta por ID com escopo por proprietário e consulta global do operador; testar dois clientes, lista vazia, IDs inexistentes e 404 sem vazamento para pedido de terceiro.
+- [x] 4.4 Documentar contratos de criação e consulta com exemplos de token, itens e valores retornados; verificar exemplos com cenários HTTP equivalentes.
 
 ## 5. Status e cancelamento
 
