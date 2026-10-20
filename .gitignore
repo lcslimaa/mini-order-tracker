@@ -1,0 +1,25 @@
+# IDEs and local agent configuration
+.idea/
+.vscode/
+.codeartsdoer/
+.agents/
+.codex/
+.DS_Store
+
+# Build output
+target/
+build/
+*.class
+*.log
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+.aws/
+
+# Local H2 database
+data/
+*.mv.db
+*.trace.db
+*.lock.db
