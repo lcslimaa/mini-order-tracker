@@ -4,7 +4,7 @@ API REST simplificada para rastreamento de pedidos de delivery.
 
 ## Status
 
-Planejamento OpenSpec concluído e validado. A implementação da API ainda não começou; não há aplicação executável neste repositório.
+Planejamento OpenSpec validado. Fundação Spring Boot e migrações H2 implementadas; endpoints funcionais em desenvolvimento.
 
 ## Escopo
 
@@ -35,3 +35,19 @@ openspec validate delivery-order-tracking --strict
 ```
 
 Para iniciar a implementação no Codex, use `$openspec-apply-change delivery-order-tracking`.
+
+## Desenvolvimento local
+
+Requer JDK 21. O Maven é baixado automaticamente pelo wrapper no primeiro uso.
+
+```sh
+# macOS, caso o Java padrão seja diferente
+export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+./mvnw test
+./mvnw spring-boot:run
+```
+
+O banco padrão é `jdbc:h2:file:./data/tracker`, com migrações Flyway versionadas.
+`DATABASE_URL`, `DATABASE_USERNAME` e `DATABASE_PASSWORD` permitem configurar o armazenamento.
+Os testes usam H2 isolado em memória e arquivos temporários para verificar reabertura.
+O console web H2 está desabilitado. Credenciais e arquivos de banco não devem ser versionados.
