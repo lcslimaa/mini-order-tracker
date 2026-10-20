@@ -19,22 +19,22 @@ API implementada em Java 21 e Spring Boot 4.1.1, com tarefas OpenSpec concluída
 
 ## Planejamento
 
-A mudança está em [`openspec/changes/delivery-order-tracking/`](openspec/changes/delivery-order-tracking/):
+O planejamento está arquivado em [`openspec/changes/archive/2026-10-20-delivery-order-tracking/`](openspec/changes/archive/2026-10-20-delivery-order-tracking/):
 
-- [Proposta](openspec/changes/delivery-order-tracking/proposal.md)
-- [Design técnico](openspec/changes/delivery-order-tracking/design.md)
-- [Autenticação](openspec/changes/delivery-order-tracking/specs/user-auth/spec.md)
-- [Catálogo](openspec/changes/delivery-order-tracking/specs/product-catalog/spec.md)
-- [Pedidos](openspec/changes/delivery-order-tracking/specs/order-tracking/spec.md)
-- [Tarefas](openspec/changes/delivery-order-tracking/tasks.md)
+- [Proposta](openspec/changes/archive/2026-10-20-delivery-order-tracking/proposal.md)
+- [Design técnico](openspec/changes/archive/2026-10-20-delivery-order-tracking/design.md)
+- [Autenticação](openspec/changes/archive/2026-10-20-delivery-order-tracking/specs/user-auth/spec.md)
+- [Catálogo](openspec/changes/archive/2026-10-20-delivery-order-tracking/specs/product-catalog/spec.md)
+- [Pedidos](openspec/changes/archive/2026-10-20-delivery-order-tracking/specs/order-tracking/spec.md)
+- [Tarefas](openspec/changes/archive/2026-10-20-delivery-order-tracking/tasks.md)
 
 Com o CLI OpenSpec instalado, valide o planejamento com:
 
 ```sh
-openspec validate delivery-order-tracking --strict
+openspec validate --specs --strict
 ```
 
-A mudança permanece aberta até a revisão e o arquivamento pelo fluxo OpenSpec.
+As especificações consolidadas estão em `openspec/specs/`. O arquivamento do planejamento não realiza merge dos PRs.
 
 ## Desenvolvimento local
 
