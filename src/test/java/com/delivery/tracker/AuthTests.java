@@ -98,4 +98,15 @@ class AuthTests extends ApiSupport {
         assertThat(users.findByEmail("bootstrap-client@example.com").orElseThrow().getRole()).isEqualTo(com.delivery.tracker.auth.Role.CLIENTE);
         org.assertj.core.api.Assertions.assertThatThrownBy(()->new com.delivery.tracker.auth.OperatorBootstrap(users,passwords,validator,"Operador","","").run(args)).isInstanceOf(IllegalStateException.class);
     }
+
+    @Test void loginRejectsPasswordSuffixesBeyondBcryptByteLimit() throws Exception {
+        for(var entry : Map.of("ascii-boundary@example.com","a".repeat(72),"utf8-boundary@example.com","á".repeat(36)).entrySet()) {
+            assertThat(request("POST","/auth/register",null,Map.of("name","Limite","email",entry.getKey(),"password",entry.getValue())).status()).isEqualTo(201);
+            assertThat(login(entry.getKey(),entry.getValue())).isNotBlank();
+            var wrong=request("POST","/auth/login",null,Map.of("email",entry.getKey(),"password",entry.getValue()+"wrong-suffix"));
+            assertThat(wrong.status()).as(entry.getKey()).isEqualTo(401);
+            assertThat(wrong.body().path("code").asText()).isEqualTo("UNAUTHORIZED");
+            assertThat(wrong.body().has("accessToken")).isFalse();
+        }
+    }
 }
