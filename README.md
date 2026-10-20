@@ -4,7 +4,7 @@ API REST simplificada para rastreamento de pedidos de delivery.
 
 ## Status
 
-Planejamento OpenSpec validado. Fundação Spring Boot e migrações H2 implementadas; endpoints funcionais em desenvolvimento.
+API implementada em Java 21 e Spring Boot 4.1.1, com tarefas OpenSpec concluídas e verificação integrada de autenticação, catálogo, pedidos, concorrência e persistência. A integração à main depende da revisão dos PRs.
 
 ## Escopo
 
@@ -34,7 +34,7 @@ Com o CLI OpenSpec instalado, valide o planejamento com:
 openspec validate delivery-order-tracking --strict
 ```
 
-Para iniciar a implementação no Codex, use `$openspec-apply-change delivery-order-tracking`.
+A mudança permanece aberta até a revisão e o arquivamento pelo fluxo OpenSpec.
 
 ## Desenvolvimento local
 
@@ -43,9 +43,10 @@ Requer JDK 21. O Maven é baixado automaticamente pelo wrapper no primeiro uso.
 ```sh
 # macOS, caso o Java padrão seja diferente
 export JAVA_HOME=$(/usr/libexec/java_home -v 21)
-./mvnw test
-./mvnw spring-boot:run
+./mvnw verify
 ```
+
+Antes de iniciar com `./mvnw spring-boot:run`, configure o segredo JWT e, se necessário, o operador conforme a seção Autenticação.
 
 O banco padrão é `jdbc:h2:file:./data/tracker`, com migrações Flyway versionadas.
 `DATABASE_URL`, `DATABASE_USERNAME` e `DATABASE_PASSWORD` permitem configurar o armazenamento.
@@ -67,7 +68,7 @@ export OPERATOR_PASSWORD
 ```
 
 Mantenha o mesmo segredo entre reinicializações para preservar a validade dos tokens emitidos.
-A senha aceita de 1 a 72 bytes UTF-8, sem truncamento; nunca é devolvida pela API.
+A senha deve ser não vazia e conter no máximo 72 bytes UTF-8, sem truncamento; nunca é devolvida pela API. Login com senha acima desse limite retorna o mesmo 401 de credenciais inválidas.
 O cadastro público sempre cria `CLIENTE` e rejeita campos de perfil. Email é normalizado para minúsculas, sem espaços externos.
 
 ```sh

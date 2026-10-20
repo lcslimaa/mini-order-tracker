@@ -26,6 +26,9 @@ public class AuthService {
     }
     @Transactional(readOnly=true)
     public AppUser login(String email,String password) {
+        if(password == null || password.getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new ApiException(401,"UNAUTHORIZED","Email ou senha inválidos");
+        }
         var user=users.findByEmail(normalize(email));
         // Perform BCrypt even for unknown emails to reduce account enumeration by timing.
         boolean valid = passwords.matches(password == null ? "" : password,user.map(AppUser::getPasswordHash).orElse(dummyHash));
