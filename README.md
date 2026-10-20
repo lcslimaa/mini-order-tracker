@@ -82,3 +82,21 @@ curl -X POST http://localhost:8080/api/auth/login \
 Login retorna `accessToken`, `tokenType: "Bearer"` e `expiresIn`. Use `Authorization: Bearer <accessToken>` em todas as rotas de catálogo e pedidos. Para login do operador, use seu email e senha de provisionamento. Não há refresh token nem revogação por logout neste MVP.
 
 Erros retornam JSON com `status`, `code` e `message`. Autenticação ausente ou inválida retorna 401; perfil sem permissão retorna 403; entrada inválida retorna 400 e email duplicado retorna 409.
+
+## Catálogo
+
+`GET /api/products` retorna um array ordenado por ID: clientes veem somente produtos disponíveis, operadores veem todos. Cada produto tem `id`, `name`, `price` e `available`.
+Somente operadores usam `POST /api/products` e `PUT /api/products/{id}`. O preço deve ser positivo, com no máximo duas casas decimais. Não há exclusão física; use `available: false`.
+
+```sh
+# Defina OPERATOR_TOKEN com o accessToken obtido no login do operador.
+curl -X POST http://localhost:8080/api/products \
+  -H "Authorization: Bearer $OPERATOR_TOKEN" -H 'Content-Type: application/json' \
+  -d '{"name":"Pizza","price":12.50}'
+curl -X PUT http://localhost:8080/api/products/1 \
+  -H "Authorization: Bearer $OPERATOR_TOKEN" -H 'Content-Type: application/json' \
+  -d '{"name":"Pizza","price":15.00,"available":false}'
+curl http://localhost:8080/api/products -H "Authorization: Bearer $OPERATOR_TOKEN"
+```
+
+A criação retorna 201 e assume `available: true` quando omitido. Edição exige os três campos e retorna 200; produto inexistente retorna 404. Dados inválidos retornam 400 sem alteração persistida.

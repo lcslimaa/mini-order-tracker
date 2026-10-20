@@ -15,9 +15,9 @@
 
 ## 3. Catálogo
 
-- [ ] 3.1 Implementar criação e edição de produtos pelo operador com validação de nome, preço decimal e disponibilidade; testar 201/200, dados inválidos, ID inexistente e bloqueio do cliente.
-- [ ] 3.2 Implementar listagem autenticada com disponíveis para clientes e catálogo completo para operador; testar catálogo vazio, produto indisponível e diferença entre perfis.
-- [ ] 3.3 Documentar endpoints e exemplos de manutenção e consulta do catálogo; verificar exemplos pelos testes HTTP equivalentes.
+- [x] 3.1 Implementar criação e edição de produtos pelo operador com validação de nome, preço decimal e disponibilidade; testar 201/200, dados inválidos, ID inexistente e bloqueio do cliente.
+- [x] 3.2 Implementar listagem autenticada com disponíveis para clientes e catálogo completo para operador; testar catálogo vazio, produto indisponível e diferença entre perfis.
+- [x] 3.3 Documentar endpoints e exemplos de manutenção e consulta do catálogo; verificar exemplos pelos testes HTTP equivalentes.
 
 ## 4. Criação e consulta de pedidos
 
