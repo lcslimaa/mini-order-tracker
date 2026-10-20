@@ -65,7 +65,7 @@ O arquivo é opcional para ambientes que fornecem configuração externa. Variá
 O banco padrão é `jdbc:h2:file:./data/tracker`, com migrações Flyway versionadas.
 `DATABASE_URL`, `DATABASE_USERNAME` e `DATABASE_PASSWORD` permitem configurar o armazenamento.
 Os testes usam H2 isolado em memória e arquivos temporários para verificar reabertura.
-O console web H2 está desabilitado. Credenciais e arquivos de banco não devem ser versionados.
+O console web H2 pode ser habilitado para desenvolvimento conforme a seção abaixo. Credenciais e arquivos de banco não devem ser versionados.
 
 ## Autenticação
 
@@ -155,3 +155,15 @@ curl -X POST http://localhost:8080/api/orders/1/cancel \
 ```
 
 O operador também pode enviar `{"status":"CANCELADO"}` ao endpoint de status, com as mesmas regras. Alterações válidas retornam 200 com o pedido atualizado; saltos, regressões, repetições, cancelamento fora do estado permitido ou alterações após finalização retornam 409. Status desconhecido retorna 400. Disputas concorrentes preservam uma alteração e retornam 409 para a outra; consulte novamente antes de tentar outra ação.
+
+
+## Console H2 local
+
+Defina `H2_CONSOLE_ENABLED=true` no `.env` e reinicie a aplicação. Acesse `http://localhost:8080/h2-console/` enquanto a aplicação estiver rodando. Se alterou `SERVER_PORT`, use essa porta.
+
+- Driver: `org.h2.Driver`.
+- JDBC URL: `jdbc:h2:file:./data/tracker`, ou o valor de `DATABASE_URL` no `.env`.
+- User Name: `sa`, ou o valor de `DATABASE_USERNAME`.
+- Password: vazia por padrão, ou o valor de `DATABASE_PASSWORD`.
+
+Clique em **Connect**. O console usa as credenciais do banco, não as do operador, e aceita apenas conexões locais. A flag é desabilitada por padrão e no `.env.example`; mantenha-a desabilitada fora do desenvolvimento local. A liberação das páginas e frames do console não altera a autenticação JWT da API.
