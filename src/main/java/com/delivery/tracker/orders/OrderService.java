@@ -35,6 +35,16 @@ public class OrderService {
     }
     @Transactional(readOnly=true)
     public OrderView get(Long id,Identity identity) { return OrderView.from(visible(id,identity)); }
+    @Transactional
+    public OrderView changeStatus(Long id,Identity identity,OrderStatus target) {
+        var order=visible(id,identity);order.advance(target);orders.flush();
+        return OrderView.from(order);
+    }
+    @Transactional
+    public OrderView cancel(Long id,Identity identity) {
+        var order=visible(id,identity);order.cancel(identity.operator());orders.flush();
+        return OrderView.from(order);
+    }
     private DeliveryOrder visible(Long id,Identity identity) {
         return (identity.operator()?orders.findById(id):orders.findByIdAndCustomerId(id,identity.id())).orElseThrow(ApiException::notFound);
     }

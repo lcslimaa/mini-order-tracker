@@ -28,10 +28,10 @@
 
 ## 5. Status e cancelamento
 
-- [ ] 5.1 Implementar avanço sequencial exclusivo do operador e rejeição de transições inválidas; testar matriz completa de estados, status desconhecido, repetição, regressão, saltos e 403 para cliente.
-- [ ] 5.2 Implementar cancelamento pelo cliente somente em RECEBIDO e pelo operador em qualquer estado ativo, com CANCELADO também aceito no endpoint de status; testar ambos os endpoints, propriedade, estados finais e 404 para pedido de terceiro.
-- [ ] 5.3 Implementar controle de concorrência em alterações de pedido e coordenação transacional da captura de produtos; testar disputa entre preparo e cancelamento com um vencedor e 409 para o concorrente, além de edição de catálogo durante criação sem dados misturados.
-- [ ] 5.4 Documentar fluxo, cancelamentos e códigos de erro; verificar correspondência entre documentação, matriz de transições e testes de integração.
+- [x] 5.1 Implementar avanço sequencial exclusivo do operador e rejeição de transições inválidas; testar matriz completa de estados, status desconhecido, repetição, regressão, saltos e 403 para cliente.
+- [x] 5.2 Implementar cancelamento pelo cliente somente em RECEBIDO e pelo operador em qualquer estado ativo, com CANCELADO também aceito no endpoint de status; testar ambos os endpoints, propriedade, estados finais e 404 para pedido de terceiro.
+- [x] 5.3 Implementar controle de concorrência em alterações de pedido e coordenação transacional da captura de produtos; testar disputa entre preparo e cancelamento com um vencedor e 409 para o concorrente, além de edição de catálogo durante criação sem dados misturados.
+- [x] 5.4 Documentar fluxo, cancelamentos e códigos de erro; verificar correspondência entre documentação, matriz de transições e testes de integração.
 
 ## 6. Verificação integrada
 

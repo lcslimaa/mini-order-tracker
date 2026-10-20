@@ -25,6 +25,20 @@ public class DeliveryOrder {
     public void addItem(Product product,int quantity) {
         var item=new OrderItem(this,product,quantity);items.add(item);total=total.add(item.getSubtotal());
     }
+    public void advance(OrderStatus target) {
+        boolean allowed = switch(status) {
+            case RECEBIDO -> target == OrderStatus.EM_PREPARO || target == OrderStatus.CANCELADO;
+            case EM_PREPARO -> target == OrderStatus.SAIU_PARA_ENTREGA || target == OrderStatus.CANCELADO;
+            case SAIU_PARA_ENTREGA -> target == OrderStatus.ENTREGUE || target == OrderStatus.CANCELADO;
+            case ENTREGUE, CANCELADO -> false;
+        };
+        if(!allowed) throw com.delivery.tracker.common.ApiException.conflict();
+        status=target;
+    }
+    public void cancel(boolean operator) {
+        if(!operator && status != OrderStatus.RECEBIDO) throw com.delivery.tracker.common.ApiException.conflict();
+        advance(OrderStatus.CANCELADO);
+    }
     public Long getId() { return id; }
     public AppUser getCustomer() { return customer; }
     public String getAddress() { return address; }
