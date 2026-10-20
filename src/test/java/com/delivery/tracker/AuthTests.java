@@ -75,7 +75,7 @@ class AuthTests extends ApiSupport {
     }
 
     @org.springframework.beans.factory.annotation.Autowired org.springframework.security.oauth2.jwt.JwtEncoder encoder;
-    @org.springframework.beans.factory.annotation.Autowired com.delivery.tracker.auth.UserRepository users;
+    @org.springframework.beans.factory.annotation.Autowired com.delivery.tracker.repository.UserRepository users;
     @org.springframework.beans.factory.annotation.Autowired org.springframework.security.crypto.password.PasswordEncoder passwords;
     @org.springframework.beans.factory.annotation.Autowired jakarta.validation.Validator validator;
     @Test void expiredOrNonExpiringTokenIsRejected() throws Exception {
@@ -91,12 +91,12 @@ class AuthTests extends ApiSupport {
     @Test void bootstrapPreservesOperatorAndRejectsClientCollisionAndPartialConfiguration() throws Exception {
         var args=new org.springframework.boot.DefaultApplicationArguments();
         var before=users.findByEmail("operator@example.com").orElseThrow().getPasswordHash();
-        new com.delivery.tracker.auth.OperatorBootstrap(users,passwords,validator,"Novo Nome","operator@example.com","changed-password").run(args);
+        new com.delivery.tracker.bootstrap.OperatorBootstrap(users,passwords,validator,"Novo Nome","operator@example.com","changed-password").run(args);
         assertThat(users.findByEmail("operator@example.com").orElseThrow().getPasswordHash()).isEqualTo(before);
         client("bootstrap-client@example.com");
-        org.assertj.core.api.Assertions.assertThatThrownBy(()->new com.delivery.tracker.auth.OperatorBootstrap(users,passwords,validator,"Operador","bootstrap-client@example.com","x").run(args)).isInstanceOf(IllegalStateException.class);
-        assertThat(users.findByEmail("bootstrap-client@example.com").orElseThrow().getRole()).isEqualTo(com.delivery.tracker.auth.Role.CLIENTE);
-        org.assertj.core.api.Assertions.assertThatThrownBy(()->new com.delivery.tracker.auth.OperatorBootstrap(users,passwords,validator,"Operador","","").run(args)).isInstanceOf(IllegalStateException.class);
+        org.assertj.core.api.Assertions.assertThatThrownBy(()->new com.delivery.tracker.bootstrap.OperatorBootstrap(users,passwords,validator,"Operador","bootstrap-client@example.com","x").run(args)).isInstanceOf(IllegalStateException.class);
+        assertThat(users.findByEmail("bootstrap-client@example.com").orElseThrow().getRole()).isEqualTo(com.delivery.tracker.enums.Role.CLIENTE);
+        org.assertj.core.api.Assertions.assertThatThrownBy(()->new com.delivery.tracker.bootstrap.OperatorBootstrap(users,passwords,validator,"Operador","","").run(args)).isInstanceOf(IllegalStateException.class);
     }
 
     @Test void loginRejectsPasswordSuffixesBeyondBcryptByteLimit() throws Exception {

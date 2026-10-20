@@ -36,6 +36,26 @@ openspec validate --specs --strict
 
 As especificações consolidadas estão em `openspec/specs/`. O arquivamento do planejamento não realiza merge dos PRs.
 
+## Organização do código Java
+
+As classes em `src/main/java/com/delivery/tracker` estão organizadas por camadas:
+
+| Pacote | Responsabilidade |
+|---|---|
+| `controller` | Endpoints REST e validação das requisições |
+| `service` | Casos de uso, regras de negócio e transações |
+| `repository` | Acesso aos dados com Spring Data JPA |
+| `entity` | Entidades e relacionamentos persistidos |
+| `enums` | Perfis de usuário e status de pedido |
+| `dto.auth`, `dto.catalog`, `dto.order`, `dto.error` | Requests e responses em arquivos próprios |
+| `config` | Configurações de segurança JWT e console H2 |
+| `security` | Identidade do usuário autenticado |
+| `bootstrap` | Provisionamento inicial do operador |
+| `exception` | Exceções e tratamento padronizado de erros |
+| `util` | Normalização compartilhada de email |
+
+`MiniOrderTrackerApplication` permanece na raiz para a descoberta dos componentes Spring. Serviços recebem DTOs independentes dos controllers. As conversões de entidades para respostas ficam nos DTOs de resposta. Os testes de integração permanecem em `src/test/java`.
+
 ## Desenvolvimento local
 
 Requer JDK 21. O Maven é baixado automaticamente pelo wrapper no primeiro uso.
