@@ -190,6 +190,22 @@ Clique em **Connect**. O console usa as credenciais do banco, não as do operado
 
 ## Interface React e identidade
 
+A interface fica em [`react-app/`](react-app/README.md), organizada por
+funcionalidades de autenticação, pedidos e produtos. Com o backend desta branch
+rodando na porta 8080, abra outro terminal:
+
+```sh
+cd react-app
+npm ci
+npm run dev
+```
+
+Acesse `http://localhost:3000`. O proxy do Vite encaminha `/api` ao Java. A área
+de cliente oferece criação e acompanhamento de pedidos; a área de operador
+permite atender pedidos e manter o catálogo. A sessão é mantida em memória e
+exige novo login após recarregar a página. Veja os comandos de teste e implantação
+no README do frontend e os resultados em [`react-app/VERIFICATION.md`](react-app/VERIFICATION.md).
+
 `GET /api/auth/me` exige `Authorization: Bearer <token>` e retorna somente
 `id`, `name`, `email` e `role` do usuário autenticado. Não aceita identidade ou
 perfil escolhido pelo navegador. Tokens inválidos ou expirados recebem 401.
