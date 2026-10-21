@@ -34,6 +34,8 @@ Com o CLI OpenSpec instalado, valide o planejamento com:
 openspec validate --specs --strict
 ```
 
+O planejamento da interface React está em [`openspec/changes/archive/2026-10-20-react-order-tracker/`](openspec/changes/archive/2026-10-20-react-order-tracker/), com as 21 tarefas concluídas.
+
 As especificações consolidadas estão em `openspec/specs/`. O arquivamento do planejamento não realiza merge dos PRs.
 
 ## Organização do código Java
