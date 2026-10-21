@@ -136,3 +136,66 @@ it("exposes operator next step and removes actions for final states", async () =
     screen.getAllByRole("button", { name: "Cancelar pedido" }),
   ).toHaveLength(1);
 });
+it("directs the customer to check orders after an ambiguous gateway failure", async () => {
+  mockApi((path, init) => {
+    if (path === "/api/products") return Response.json([sampleProduct]);
+    if (init.method === "POST")
+      return new Response("Bad gateway", { status: 502 });
+    return Response.json([]);
+  });
+  const user = await openApp();
+  await user.click(await screen.findByRole("link", { name: "Novo pedido" }));
+  await user.type(
+    await screen.findByLabelText("Quantidade de Bowl da casa"),
+    "1",
+  );
+  await user.type(screen.getByLabelText("Endereço de entrega"), "Rua A");
+  await user.click(screen.getByRole("button", { name: "Confirmar pedido" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    /Consulte seus pedidos antes de tentar novamente/,
+  );
+  expect(
+    screen.getByRole("link", { name: "Consultar meus pedidos" }),
+  ).toHaveAttribute("href", "/cliente/pedidos");
+});
+it("preserves the confirmed order when the following list request fails", async () => {
+  let created = false;
+  mockApi((path, init) => {
+    if (path === "/api/products") return Response.json([sampleProduct]);
+    if (path.endsWith("/cancel"))
+      return Response.json({
+        ...sampleOrder,
+        total: 49.9,
+        status: "CANCELADO",
+      });
+    if (init.method === "POST") {
+      created = true;
+      return Response.json({ ...sampleOrder, total: 49.9 }, { status: 201 });
+    }
+    if (created)
+      return Response.json(
+        { message: "Consulta indisponível" },
+        { status: 503 },
+      );
+    return Response.json([]);
+  });
+  const user = await openApp();
+  await user.click(await screen.findByRole("link", { name: "Novo pedido" }));
+  await user.type(
+    await screen.findByLabelText("Quantidade de Bowl da casa"),
+    "2",
+  );
+  await user.type(screen.getByLabelText("Endereço de entrega"), "Rua A");
+  await user.click(screen.getByRole("button", { name: "Confirmar pedido" }));
+  expect(await screen.findByText("Pedido #12")).toBeInTheDocument();
+  expect(screen.getByText("R$ 49,90")).toBeInTheDocument();
+  expect(screen.getByText("Recebido")).toBeInTheDocument();
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Consulta indisponível",
+  );
+  await user.click(screen.getByRole("button", { name: "Cancelar pedido" }));
+  expect(await screen.findByText("Cancelado")).toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Cancelar pedido" }),
+  ).not.toBeInTheDocument();
+});

@@ -33,7 +33,10 @@ uma implantação com origem separada exige configuração explícita no backend
 Cliente: cadastre-se, entre e abra **Novo pedido**. Informe as quantidades e o
 endereço para confirmar. O total final é calculado no Java. A lista permite
 cancelar apenas pedidos recebidos. Se o envio falhar sem resposta, consulte a
-lista antes de reenviar para evitar criar outro pedido.
+lista antes de reenviar para evitar criar outro pedido. Em falhas com resultado
+incerto (rede, timeout ou erro de servidor), o formulário bloqueia novo envio e
+oferece um link para consultar os pedidos. A resposta de criação é mantida em
+memória durante a sessão para exibir a confirmação mesmo se a listagem falhar.
 
 Operador: use a conta provisionada pelas variáveis `OPERATOR_NAME`,
 `OPERATOR_EMAIL` e `OPERATOR_PASSWORD` do backend (veja o README da raiz).

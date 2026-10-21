@@ -4,8 +4,10 @@ import { useResource } from "../../shared/hooks/useResource";
 import { ApiError, errorMessage } from "../../shared/api/client";
 import { ordersApi } from "./api";
 import type { Order, OrderStatus } from "./types";
+import { useCreatedOrder } from "./CreatedOrderProvider";
 export function useOrders() {
   const { run } = useAuth();
+  const confirmation = useCreatedOrder();
   const loader = useCallback(
     (signal: AbortSignal) =>
       run((token, sessionSignal) =>
@@ -35,12 +37,15 @@ export function useOrders() {
           ? ordersApi.advance(token, order.id, status, signal)
           : ordersApi.cancel(token, order.id, signal),
       );
-      if (mounted.current)
+      if (mounted.current) {
+        if (confirmation?.order?.id === updated.id)
+          confirmation.confirm(updated);
         resource.update((previous) =>
           (previous ?? []).map((item) =>
             item.id === updated.id ? updated : item,
           ),
         );
+      }
     } catch (e) {
       if (
         !mounted.current ||

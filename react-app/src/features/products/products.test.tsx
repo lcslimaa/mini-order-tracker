@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor } from "@testing-library/react";
 import { it, expect } from "vitest";
 import { mockApi, sampleProduct } from "../../test/fixtures";
 import { openApp } from "../../test/renderApp";
@@ -50,4 +50,46 @@ it("keeps a rejected product form and reports the API error", async () => {
     "Conflito no catálogo",
   );
   expect(screen.getByLabelText("Nome do produto")).toHaveValue("Suco");
+});
+it("prevents replacing an editor while a save is pending", async () => {
+  let finish: ((response: Response) => void) | undefined;
+  mockApi((path, init) => {
+    if (path === "/api/orders") return Response.json([]);
+    if (init.method === "PUT")
+      return new Promise<Response>((resolve) => {
+        finish = resolve;
+      });
+    return Response.json([sampleProduct]);
+  }, "OPERADOR");
+  const user = await openApp();
+  await user.click(await screen.findByRole("link", { name: "Produtos" }));
+  await user.click(
+    await screen.findByRole("button", { name: "Editar Bowl da casa" }),
+  );
+  await user.click(screen.getByRole("button", { name: "Salvar produto" }));
+  expect(screen.getByRole("button", { name: "Novo produto" })).toBeDisabled();
+  await act(async () =>
+    finish?.(Response.json({ ...sampleProduct, price: 30 })),
+  );
+  await screen.findByText("R$ 30,00");
+  expect(screen.getByRole("button", { name: "Novo produto" })).toHaveFocus();
+  expect(screen.getByRole("button", { name: "Novo produto" })).toBeEnabled();
+});
+it("waits for the complete catalog before allowing creation", async () => {
+  let finish: ((response: Response) => void) | undefined;
+  mockApi(
+    (path) =>
+      path === "/api/orders"
+        ? Response.json([])
+        : new Promise<Response>((resolve) => {
+            finish = resolve;
+          }),
+    "OPERADOR",
+  );
+  const user = await openApp();
+  await user.click(await screen.findByRole("link", { name: "Produtos" }));
+  expect(screen.getByRole("button", { name: "Novo produto" })).toBeDisabled();
+  await act(async () => finish?.(Response.json([sampleProduct])));
+  await screen.findByText("Bowl da casa");
+  expect(screen.getByRole("button", { name: "Novo produto" })).toBeEnabled();
 });

@@ -4,9 +4,12 @@ Execução em 20/10/2026, com Java 21 e Node 26, em worktree isolado.
 
 - `./mvnw test`: 28 testes Java passaram, incluindo identidade, CORS/preflight,
   controle por perfil, concorrência e persistência.
-- `npm test`: 21 testes passaram. Cobrem contrato HTTP, cadastro/login, falha de
+- `npm test`: 25 testes passaram. Cobrem contrato HTTP, cadastro/login, falha de
   identidade, logout/401, descarte de resposta antiga, pedidos, conflitos,
   produtos e atualização periódica sem sobreposição, em aba visível.
+  As regressões da revisão cobrem troca de editor durante salvamento, catálogo
+  inicial pendente, erro de gateway com resultado incerto e pedido confirmado
+  preservado quando a consulta falha (inclusive cancelamento nesse estado).
 - `npm run typecheck` e `npm run build`: passaram.
 - `npm audit --audit-level=high`: nenhuma vulnerabilidade encontrada.
 - `npm run test:e2e`, com variáveis de operador de teste: passou em Chromium,

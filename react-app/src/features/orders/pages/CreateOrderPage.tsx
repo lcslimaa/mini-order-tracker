@@ -12,9 +12,11 @@ import { useResource } from "../../../shared/hooks/useResource";
 import { money } from "../../../shared/utils/formatters";
 import { ApiError, errorMessage } from "../../../shared/api/client";
 import { ordersApi } from "../api";
+import { useCreatedOrder } from "../CreatedOrderProvider";
 export function CreateOrderPage() {
   const { run } = useAuth();
   const navigate = useNavigate();
+  const confirmation = useCreatedOrder();
   const loader = useCallback(
     (signal: AbortSignal) =>
       run((token, sessionSignal) =>
@@ -27,6 +29,7 @@ export function CreateOrderPage() {
   const [address, setAddress] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [pending, setPending] = useState(false);
+  const [uncertain, setUncertain] = useState(false);
   const busy = useRef(false);
   const alive = useRef(true);
   useEffect(
@@ -42,7 +45,7 @@ export function CreateOrderPage() {
   );
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (busy.current) return;
+    if (busy.current || uncertain) return;
     const items = Object.entries(quantities)
       .filter(([, q]) => q !== "" && Number(q) !== 0)
       .map(([id, q]) => ({ productId: Number(id), quantity: Number(q) }));
@@ -60,24 +63,30 @@ export function CreateOrderPage() {
     setPending(true);
     setSubmitError("");
     try {
-      await run((token, signal) =>
+      const created = await run((token, signal) =>
         ordersApi.create(token, { address: address.trim(), items }, signal),
       );
-      if (alive.current)
+      if (alive.current) {
+        confirmation?.confirm(created);
         navigate("/cliente/pedidos", {
           replace: true,
           state: { created: true },
         });
+      }
     } catch (e) {
       if (
         alive.current &&
         !(e instanceof DOMException && e.name === "AbortError")
-      )
+      ) {
+        const ambiguous =
+          !(e instanceof ApiError) || e.status >= 500 || e.status === 408;
+        setUncertain(ambiguous);
         setSubmitError(
-          e instanceof ApiError
-            ? errorMessage(e)
-            : "Não foi possível confirmar o envio. Consulte seus pedidos antes de tentar novamente.",
+          ambiguous
+            ? "Não foi possível confirmar o envio. Consulte seus pedidos antes de tentar novamente."
+            : errorMessage(e),
         );
+      }
     } finally {
       busy.current = false;
       if (alive.current) setPending(false);
@@ -174,9 +183,15 @@ export function CreateOrderPage() {
             {submitError && (
               <p role="alert" className="error">
                 {submitError}
+                {uncertain && (
+                  <>
+                    {" "}
+                    <Link to="/cliente/pedidos">Consultar meus pedidos</Link>
+                  </>
+                )}
               </p>
             )}
-            <button className="primary full" disabled={pending}>
+            <button className="primary full" disabled={pending || uncertain}>
               {pending ? "Enviando…" : "Confirmar pedido"}
             </button>
           </aside>

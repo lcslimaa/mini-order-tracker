@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "../../auth/AuthProvider";
 import { productsApi } from "../api";
 import { useResource } from "../../../shared/hooks/useResource";
@@ -18,9 +18,14 @@ export function ManageProductsPage() {
   const [editor, setEditor] = useState<Product | "new" | null>(null);
   const [success, setSuccess] = useState("");
   const newButton = useRef<HTMLButtonElement>(null);
+  const previousEditor = useRef(editor);
+  useEffect(() => {
+    if (editor === null && previousEditor.current !== null)
+      newButton.current?.focus();
+    previousEditor.current = editor;
+  }, [editor]);
   function close() {
     setEditor(null);
-    newButton.current?.focus();
   }
   function saved(product: Product) {
     update((old) =>
@@ -41,6 +46,7 @@ export function ManageProductsPage() {
         </div>
         <button
           ref={newButton}
+          disabled={loading || data === null || editor !== null}
           className="primary"
           onClick={() => {
             setEditor("new");

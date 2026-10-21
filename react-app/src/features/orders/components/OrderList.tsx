@@ -3,6 +3,7 @@ import { money, dateTime } from "../../../shared/utils/formatters";
 import { useOrders } from "../useOrders";
 import { OrderStatusBadge } from "./OrderStatusBadge";
 import type { OrderStatus } from "../types";
+import { useCreatedOrder } from "../CreatedOrderProvider";
 const nextStep: Partial<
   Record<OrderStatus, { status: OrderStatus; label: string }>
 > = {
@@ -11,9 +12,24 @@ const nextStep: Partial<
   SAIU_PARA_ENTREGA: { status: "ENTREGUE", label: "Concluir entrega" },
 };
 export function OrderList({ operator = false }: { operator?: boolean }) {
-  const { orders, data, loading, error, refresh, pending, actionError, act } =
-    useOrders();
+  const {
+    orders: loadedOrders,
+    data,
+    loading,
+    error,
+    refresh,
+    pending,
+    actionError,
+    act,
+  } = useOrders();
   const location = useLocation();
+  const confirmation = useCreatedOrder();
+  const confirmed = operator ? null : confirmation?.order;
+  const missingConfirmation =
+    confirmed && !loadedOrders.some((order) => order.id === confirmed.id);
+  const orders = missingConfirmation
+    ? [confirmed, ...loadedOrders]
+    : loadedOrders;
   return (
     <>
       <div className="page-heading">
@@ -80,6 +96,12 @@ export function OrderList({ operator = false }: { operator?: boolean }) {
           {data && "Os dados abaixo são da última consulta."}
         </p>
       )}
+      {missingConfirmation && (
+        <p className="muted small">
+          O pedido abaixo foi confirmado na criação. Aguardando atualização da
+          lista.
+        </p>
+      )}
       {actionError && (
         <p role="alert" className="error">
           {actionError}
@@ -90,7 +112,7 @@ export function OrderList({ operator = false }: { operator?: boolean }) {
           Buscando seus pedidos…
         </p>
       )}
-      {!loading && !error && data?.length === 0 && (
+      {!loading && !error && data?.length === 0 && orders.length === 0 && (
         <div className="empty panel">
           <div className="empty-icon" aria-hidden="true">
             ▤
