@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.web.bind.annotation.*;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -23,6 +24,10 @@ public class AuthController {
     public AuthController(AuthService auth,JwtEncoder encoder,@Value("${app.jwt.ttl-seconds}") long ttl) {
         if (ttl <= 0) throw new IllegalArgumentException("JWT_TTL_SECONDS deve ser positivo");
         this.auth=auth;this.encoder=encoder;this.ttl=ttl;
+    }
+    @GetMapping("/me")
+    UserResponse me(@org.springframework.security.core.annotation.AuthenticationPrincipal com.delivery.tracker.security.Identity identity) {
+        return auth.current(identity.id());
     }
     @PostMapping("/register") @ResponseStatus(HttpStatus.CREATED)
     UserResponse register(@Valid @RequestBody RegisterRequest request) {
