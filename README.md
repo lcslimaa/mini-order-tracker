@@ -1,93 +1,170 @@
 # Mini Order Tracker
 
-API REST simplificada para rastreamento de pedidos de delivery.
+Sistema de rastreamento de pedidos de delivery com API REST em Java 21 e Spring Boot 4.1.1 e interface **Mesa**, desenvolvida em React e TypeScript.
 
-## Status
+Clientes se cadastram, criam pedidos e acompanham as entregas. Operadores administram o catálogo e atualizam os pedidos. O backend usa Spring Security, JWT, BCrypt e banco H2 em arquivo com migrações Flyway.
 
-API implementada em Java 21 e Spring Boot 4.1.1, com tarefas OpenSpec concluídas e verificação integrada de autenticação, catálogo, pedidos, concorrência e persistência. A integração à main depende da revisão dos PRs.
+## Pré-requisitos
 
-## Escopo
+- **JDK 21**, com `JAVA_HOME` apontando para essa instalação.
+- **Node.js 24.15.0 ou superior da série 24**, com npm, compatível com as dependências do lockfile.
+- **Git**, para clonar o repositório, e acesso à internet no primeiro uso para baixar dependências.
+- Portas **8080** (backend) e **3000** (frontend) livres.
 
-- Java e Spring Boot, Spring Security, JWT com expiração e BCrypt.
-- Cadastro público de clientes e provisionamento inicial controlado do operador.
-- Clientes criam e consultam os próprios pedidos; operadores consultam todos e gerenciam seu fluxo.
-- Catálogo administrado pelo operador, com edição e disponibilidade de produtos.
-- Pedidos preservam preços históricos e calculam o total no servidor, sem taxa de entrega.
-- Fluxo: `RECEBIDO` → `EM_PREPARO` → `SAIU_PARA_ENTREGA` → `ENTREGUE`.
-- Cliente cancela apenas antes do preparo; operador pode cancelar em qualquer estado ativo.
-- Persistência H2 em arquivo e testes de integração de segurança e regras de negócio.
+Não é necessário instalar Maven ou um servidor de banco: o projeto inclui Maven Wrapper e H2. OpenSSL pode ser usado para gerar o segredo JWT.
 
-## Planejamento
-
-O planejamento está arquivado em [`openspec/changes/archive/2026-10-20-delivery-order-tracking/`](openspec/changes/archive/2026-10-20-delivery-order-tracking/):
-
-- [Proposta](openspec/changes/archive/2026-10-20-delivery-order-tracking/proposal.md)
-- [Design técnico](openspec/changes/archive/2026-10-20-delivery-order-tracking/design.md)
-- [Autenticação](openspec/changes/archive/2026-10-20-delivery-order-tracking/specs/user-auth/spec.md)
-- [Catálogo](openspec/changes/archive/2026-10-20-delivery-order-tracking/specs/product-catalog/spec.md)
-- [Pedidos](openspec/changes/archive/2026-10-20-delivery-order-tracking/specs/order-tracking/spec.md)
-- [Tarefas](openspec/changes/archive/2026-10-20-delivery-order-tracking/tasks.md)
-
-Com o CLI OpenSpec instalado, valide o planejamento com:
+Depois de clonar o repositório, abra um terminal na pasta `mini-order-tracker`. Confira as ferramentas:
 
 ```sh
-openspec validate --specs --strict
+java -version
+node --version
+npm --version
 ```
 
-O planejamento da interface React está em [`openspec/changes/archive/2026-10-20-react-order-tracker/`](openspec/changes/archive/2026-10-20-react-order-tracker/), com as 21 tarefas concluídas.
+Os comandos deste guia usam macOS/Linux ou Git Bash/WSL. No PowerShell, execute `Copy-Item .env.example .env` para copiar a configuração e `./mvnw.cmd` no lugar de `./mvnw`.
 
-As especificações consolidadas estão em `openspec/specs/`. O arquivamento do planejamento não realiza merge dos PRs.
+## Configuração inicial
 
-## Organização do código Java
-
-As classes em `src/main/java/com/delivery/tracker` estão organizadas por camadas:
-
-| Pacote | Responsabilidade |
-|---|---|
-| `controller` | Endpoints REST e validação das requisições |
-| `service` | Casos de uso, regras de negócio e transações |
-| `repository` | Acesso aos dados com Spring Data JPA |
-| `entity` | Entidades e relacionamentos persistidos |
-| `enums` | Perfis de usuário e status de pedido |
-| `dto.auth`, `dto.catalog`, `dto.order`, `dto.error` | Requests e responses em arquivos próprios |
-| `config` | Configurações de segurança JWT e console H2 |
-| `security` | Identidade do usuário autenticado |
-| `bootstrap` | Provisionamento inicial do operador |
-| `exception` | Exceções e tratamento padronizado de erros |
-| `util` | Normalização compartilhada de email |
-
-`MiniOrderTrackerApplication` permanece na raiz para a descoberta dos componentes Spring. Serviços recebem DTOs independentes dos controllers. As conversões de entidades para respostas ficam nos DTOs de resposta. Os testes de integração permanecem em `src/test/java`.
-
-## Desenvolvimento local
-
-Requer JDK 21. O Maven é baixado automaticamente pelo wrapper no primeiro uso.
-
-```sh
-# macOS, caso o Java padrão seja diferente
-export JAVA_HOME=$(/usr/libexec/java_home -v 21)
-./mvnw verify
-```
-
-O Spring Boot carrega automaticamente o arquivo `.env` na pasta de trabalho, sem plugin do IntelliJ e sem executar `source` ou `export`. Na primeira configuração de um clone:
+Na raiz do projeto, copie o arquivo de exemplo:
 
 ```sh
 cp .env.example .env
 ```
 
-Preencha `JWT_SECRET` e `OPERATOR_PASSWORD` no `.env` antes de iniciar. Gere um segredo JWT com `openssl rand -hex 32`. O arquivo usa formato Java properties: escreva `CHAVE=valor`, sem `export` e sem aspas delimitadoras. O `.env` contém credenciais locais e é ignorado pelo Git; somente `.env.example` é versionado.
+Gere um segredo e copie o resultado para `JWT_SECRET`:
 
-No IntelliJ, use JDK 21 e defina **Working directory** como `$PROJECT_DIR$` na configuração de execução de `MiniOrderTrackerApplication`. Depois, clique em Run. Pelo terminal, execute na raiz:
+```sh
+openssl rand -hex 32
+```
+
+Edite o `.env`, preenchendo o segredo e a senha local do operador. Mantenha ou personalize o nome e o email:
+
+```properties
+JWT_SECRET=cole-aqui-o-segredo-gerado
+JWT_TTL_SECONDS=3600
+OPERATOR_NAME=Operador
+OPERATOR_EMAIL=operador@example.com
+OPERATOR_PASSWORD=defina-sua-senha-local
+```
+
+Esses valores são exemplos: substitua o segredo e a senha antes de iniciar. O segredo deve ter ao menos 32 bytes e a senha deve ser não vazia, com no máximo 72 bytes UTF-8.
+
+A configuração do projeto faz o Spring Boot carregar o `.env` da pasta de trabalho automaticamente. Use formato Java properties (`CHAVE=valor`), sem `export` e sem aspas delimitadoras. Não é necessário executar `source` nem instalar plugin no IntelliJ. O arquivo contém credenciais locais e é ignorado pelo Git.
+
+O operador é criado no primeiro início. Os três campos `OPERATOR_*` devem estar preenchidos para provisioná-lo. É possível executar apenas com clientes deixando os três vazios; configuração parcial é rejeitada. Alterar `OPERATOR_PASSWORD` depois não muda a senha de uma conta já persistida.
+
+## Executar o projeto
+
+### 1. Iniciar o backend
+
+No primeiro terminal, na raiz:
 
 ```sh
 ./mvnw spring-boot:run
 ```
 
-O arquivo é opcional para ambientes que fornecem configuração externa. Variáveis de ambiente do sistema e argumentos de linha de comando têm prioridade sobre o `.env`. Os testes mantêm configurações próprias e banco isolado.
+O wrapper baixa o Maven e as dependências no primeiro uso. Aguarde a inicialização do servidor na porta **8080**. A API fica em `http://localhost:8080/api`; a interface é servida separadamente pelo frontend.
 
-O banco padrão é `jdbc:h2:file:./data/tracker`, com migrações Flyway versionadas.
-`DATABASE_URL`, `DATABASE_USERNAME` e `DATABASE_PASSWORD` permitem configurar o armazenamento.
-Os testes usam H2 isolado em memória e arquivos temporários para verificar reabertura.
-O console web H2 pode ser habilitado para desenvolvimento conforme a seção abaixo. Credenciais e arquivos de banco não devem ser versionados.
+No macOS, se o Java padrão não for o 21, ajuste antes de executar:
+
+```sh
+export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+```
+
+Para executar pelo IntelliJ, selecione JDK 21, defina **Working directory** como `$PROJECT_DIR$` e execute `MiniOrderTrackerApplication`.
+
+### 2. Iniciar o frontend
+
+Em outro terminal, também partindo da raiz:
+
+```sh
+cd react-app
+npm ci
+npm run dev
+```
+
+Acesse **http://localhost:3000**. Mantenha os dois terminais em execução. O Vite encaminha as chamadas `/api` para `http://localhost:8080`; não é necessário criar `.env` no frontend.
+
+Use `Ctrl+C` em cada terminal para encerrar os servidores. Nas próximas execuções, basta iniciar backend e frontend; repita `npm ci` quando as dependências mudarem.
+
+## Primeiro uso
+
+1. Entre na interface com o email e a senha do operador definidos no `.env`.
+2. Em **Produtos**, cadastre pelo menos um produto e mantenha-o disponível.
+3. Clique em **Sair**, abra o cadastro e crie uma conta de cliente. O cadastro público sempre cria clientes.
+4. Entre como cliente, abra **Novo pedido**, informe as quantidades e o endereço e confirme.
+5. Consulte **Meus pedidos**. Para atualizar o status, saia e entre novamente como operador.
+
+O total é calculado no servidor, sem taxa de entrega. Nomes e preços dos itens são preservados no pedido mesmo que o catálogo mude depois. O cliente cancela apenas em `RECEBIDO`; o operador pode cancelar em qualquer estado ativo.
+
+**A sessão fica somente na memória do navegador: recarregar a página exige novo login.** Sair, expirar o token ou receber 401 também encerra a sessão. As listas de pedidos são atualizadas a cada 15 segundos enquanto a aba está visível e permitem atualização manual.
+
+## Testes e build
+
+Na raiz, execute os testes e verificações do backend:
+
+```sh
+./mvnw verify
+```
+
+Os testes usam configuração própria e bancos isolados, incluindo H2 em memória e arquivos temporários para verificar persistência.
+
+Para o frontend, a partir da raiz:
+
+```sh
+cd react-app
+npm ci
+npm test
+npm run typecheck
+npm run build
+```
+
+O build gera `react-app/dist/`. Os detalhes de implantação e dos testes E2E com Playwright estão no [README do frontend](react-app/README.md). Os registros de verificação estão em [VERIFICATION.md](react-app/VERIFICATION.md).
+
+## Configurações adicionais
+
+| Variável | Uso | Padrão |
+|---|---|---|
+| `JWT_SECRET` | Segredo da assinatura JWT, ao menos 32 bytes | Obrigatório |
+| `JWT_TTL_SECONDS` | Validade do token em segundos, positiva | `3600` |
+| `OPERATOR_NAME`, `OPERATOR_EMAIL`, `OPERATOR_PASSWORD` | Provisionamento inicial do operador | Sem provisionamento se os três estiverem vazios |
+| `SERVER_PORT` | Porta HTTP do backend | `8080` |
+| `DATABASE_URL` | URL JDBC do banco H2 | `jdbc:h2:file:./data/tracker` |
+| `DATABASE_USERNAME` | Usuário do banco | `sa` |
+| `DATABASE_PASSWORD` | Senha do banco | Vazia |
+| `H2_CONSOLE_ENABLED` | Habilita o console local H2 | `false` |
+
+O banco em arquivo mantém os dados entre reinicializações na pasta `data/`, relativa à pasta de execução. As migrações Flyway são aplicadas na inicialização. Credenciais e arquivos de banco não devem ser versionados.
+
+Variáveis de ambiente do sistema e argumentos de linha de comando têm prioridade sobre o `.env`. O arquivo é opcional quando a configuração é fornecida externamente. Mantenha o mesmo segredo JWT entre reinicializações para preservar a validade dos tokens emitidos.
+
+Se mudar `SERVER_PORT`, ajuste também o destino do proxy em `react-app/vite.config.ts` e as URLs dos exemplos da API. O Vite exige a porta 3000 livre; a origem CORS de desenvolvimento está configurada no backend como `http://localhost:3000`.
+
+### Solução de problemas
+
+| Sintoma | Verificação ou ação |
+|---|---|
+| Java incompatível ou erro de compilação | Confira `java -version`, `JAVA_HOME` e o JDK do IntelliJ; use Java 21. |
+| Erro de versão do Node ao instalar ou testar | Use Node 24.15.0 ou superior da série 24 e execute novamente `npm ci`. |
+| Falha por `JWT_SECRET` | Preencha um segredo com ao menos 32 bytes e execute a partir da raiz, onde está o `.env`. |
+| Falha no provisionamento do operador | Preencha os três campos `OPERATOR_*` ou deixe os três vazios. |
+| Senha do operador alterada no `.env` não funciona | Use a senha originalmente persistida; o provisionamento não redefine senhas existentes. |
+| Porta 8080 ou 3000 ocupada | Encerre o processo que usa a porta; se alterar a do backend, ajuste o proxy do Vite. |
+| Interface abre, mas chamadas à API falham | Confira se o backend iniciou na porta esperada e se o proxy aponta para ela. Use `http://localhost:3000`. |
+| Catálogo vazio para o cliente | Entre como operador e cadastre produtos disponíveis. |
+| Login solicitado após recarregar | Comportamento previsto: a sessão é mantida somente em memória. |
+| Página raiz do backend não abre a interface | Acesse o Vite em `http://localhost:3000`; o Java atende a API. |
+
+## Console H2 local
+
+Defina `H2_CONSOLE_ENABLED=true` no `.env` e reinicie a aplicação. Acesse `http://localhost:8080/h2-console/` enquanto a aplicação estiver rodando. Se alterou `SERVER_PORT`, use essa porta.
+
+- Driver: `org.h2.Driver`.
+- JDBC URL: `jdbc:h2:file:./data/tracker`, ou o valor de `DATABASE_URL` no `.env`.
+- User Name: `sa`, ou o valor de `DATABASE_USERNAME`.
+- Password: vazia por padrão, ou o valor de `DATABASE_PASSWORD`.
+
+Clique em **Connect**. O console usa as credenciais do banco, não as do operador, e aceita apenas conexões locais. A flag é desabilitada por padrão e no `.env.example`; mantenha-a desabilitada fora do desenvolvimento local. A liberação das páginas e frames do console não altera a autenticação JWT da API.
 
 ## Autenticação
 
@@ -110,6 +187,8 @@ Mantenha o mesmo segredo entre reinicializações para preservar a validade dos 
 A senha deve ser não vazia e conter no máximo 72 bytes UTF-8, sem truncamento; nunca é devolvida pela API. Login com senha acima desse limite retorna o mesmo 401 de credenciais inválidas.
 O cadastro público sempre cria `CLIENTE` e rejeita campos de perfil. Email é normalizado para minúsculas, sem espaços externos.
 
+Os comandos a seguir usam um terminal com shell compatível com sh. No Windows, use Git Bash ou WSL.
+
 ```sh
 curl -X POST http://localhost:8080/api/auth/register \
   -H 'Content-Type: application/json' \
@@ -119,9 +198,32 @@ curl -X POST http://localhost:8080/api/auth/login \
   -d '{"email":"ana@example.com","password":"senha-local"}'
 ```
 
+Para obter o token do operador, faça outro login com o email e a senha definidos no `.env` (substitua os valores abaixo):
+
+```sh
+curl -X POST http://localhost:8080/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"operador@example.com","password":"sua-senha-local"}'
+```
+
+Copie o `accessToken` de cada resposta e defina as variáveis no mesmo terminal em que executará os exemplos:
+
+```sh
+CLIENT_TOKEN='cole-o-accessToken-do-cliente'
+OPERATOR_TOKEN='cole-o-accessToken-do-operador'
+```
+
 Login retorna `accessToken`, `tokenType: "Bearer"` e `expiresIn`. Use `Authorization: Bearer <accessToken>` em todas as rotas de catálogo e pedidos. Para login do operador, use seu email e senha de provisionamento. Não há refresh token nem revogação por logout neste MVP.
 
 Erros retornam JSON com `status`, `code` e `message`. Autenticação ausente ou inválida retorna 401; perfil sem permissão retorna 403; entrada inválida retorna 400 e email duplicado retorna 409.
+
+`GET /api/auth/me` exige `Authorization: Bearer <token>` e retorna somente
+`id`, `name`, `email` e `role` do usuário autenticado. Não aceita identidade ou
+perfil escolhido pelo navegador. Tokens inválidos ou expirados recebem 401.
+
+Os controllers permitem CORS da origem de desenvolvimento `http://localhost:3000`,
+incluindo preflight com `Authorization` e `Content-Type`. As regras de autorização
+continuam aplicadas às requisições reais; CORS não concede permissões de operador.
 
 ## Catálogo
 
@@ -129,15 +231,21 @@ Erros retornam JSON com `status`, `code` e `message`. Autenticação ausente ou 
 Somente operadores usam `POST /api/products` e `PUT /api/products/{id}`. O preço deve ser positivo, com no máximo duas casas decimais. Não há exclusão física; use `available: false`.
 
 ```sh
-# Defina OPERATOR_TOKEN com o accessToken obtido no login do operador.
+# Use OPERATOR_TOKEN definido após o login.
 curl -X POST http://localhost:8080/api/products \
   -H "Authorization: Bearer $OPERATOR_TOKEN" -H 'Content-Type: application/json' \
   -d '{"name":"Pizza","price":12.50}'
+curl -X POST http://localhost:8080/api/products \
+  -H "Authorization: Bearer $OPERATOR_TOKEN" -H 'Content-Type: application/json' \
+  -d '{"name":"Suco","price":5.00}'
+# Substitua 1 pelo ID retornado ao criar a pizza.
 curl -X PUT http://localhost:8080/api/products/1 \
   -H "Authorization: Bearer $OPERATOR_TOKEN" -H 'Content-Type: application/json' \
-  -d '{"name":"Pizza","price":15.00,"available":false}'
+  -d '{"name":"Pizza","price":12.50,"available":true}'
 curl http://localhost:8080/api/products -H "Authorization: Bearer $OPERATOR_TOKEN"
 ```
+
+Os próximos exemplos usam os IDs 1 e 2 para os produtos e 1 para o pedido. Substitua-os pelos IDs reais retornados pela API se o banco já tiver dados.
 
 A criação retorna 201 e assume `available: true` quando omitido. Edição exige os três campos e retorna 200; produto inexistente retorna 404. Dados inválidos retornam 400 sem alteração persistida.
 
@@ -172,46 +280,54 @@ O cliente pode cancelar o próprio pedido somente em `RECEBIDO`. O operador pode
 curl -X PATCH http://localhost:8080/api/orders/1/status \
   -H "Authorization: Bearer $OPERATOR_TOKEN" -H 'Content-Type: application/json' \
   -d '{"status":"EM_PREPARO"}'
+```
+
+Como alternativa ao avanço, o cliente pode cancelar um pedido que ainda esteja em `RECEBIDO`. Não execute o exemplo abaixo no mesmo pedido após colocá-lo em `EM_PREPARO`, pois receberá 409:
+
+```sh
 curl -X POST http://localhost:8080/api/orders/1/cancel \
   -H "Authorization: Bearer $CLIENT_TOKEN"
 ```
 
 O operador também pode enviar `{"status":"CANCELADO"}` ao endpoint de status, com as mesmas regras. Alterações válidas retornam 200 com o pedido atualizado; saltos, regressões, repetições, cancelamento fora do estado permitido ou alterações após finalização retornam 409. Status desconhecido retorna 400. Disputas concorrentes preservam uma alteração e retornam 409 para a outra; consulte novamente antes de tentar outra ação.
 
+## Organização do código Java
 
-## Console H2 local
+As classes em `src/main/java/com/delivery/tracker` estão organizadas por camadas:
 
-Defina `H2_CONSOLE_ENABLED=true` no `.env` e reinicie a aplicação. Acesse `http://localhost:8080/h2-console/` enquanto a aplicação estiver rodando. Se alterou `SERVER_PORT`, use essa porta.
+| Pacote | Responsabilidade |
+|---|---|
+| `controller` | Endpoints REST e validação das requisições |
+| `service` | Casos de uso, regras de negócio e transações |
+| `repository` | Acesso aos dados com Spring Data JPA |
+| `entity` | Entidades e relacionamentos persistidos |
+| `enums` | Perfis de usuário e status de pedido |
+| `dto.auth`, `dto.catalog`, `dto.order`, `dto.error` | Requests e responses em arquivos próprios |
+| `config` | Configurações de segurança JWT e console H2 |
+| `security` | Identidade do usuário autenticado |
+| `bootstrap` | Provisionamento inicial do operador |
+| `exception` | Exceções e tratamento padronizado de erros |
+| `util` | Normalização compartilhada de email |
 
-- Driver: `org.h2.Driver`.
-- JDBC URL: `jdbc:h2:file:./data/tracker`, ou o valor de `DATABASE_URL` no `.env`.
-- User Name: `sa`, ou o valor de `DATABASE_USERNAME`.
-- Password: vazia por padrão, ou o valor de `DATABASE_PASSWORD`.
+`MiniOrderTrackerApplication` permanece na raiz para a descoberta dos componentes Spring. Serviços recebem DTOs independentes dos controllers. As conversões de entidades para respostas ficam nos DTOs de resposta. Os testes de integração permanecem em `src/test/java`.
 
-Clique em **Connect**. O console usa as credenciais do banco, não as do operador, e aceita apenas conexões locais. A flag é desabilitada por padrão e no `.env.example`; mantenha-a desabilitada fora do desenvolvimento local. A liberação das páginas e frames do console não altera a autenticação JWT da API.
+## Planejamento
 
-## Interface React e identidade
+O planejamento está arquivado em [`openspec/changes/archive/2026-10-20-delivery-order-tracking/`](openspec/changes/archive/2026-10-20-delivery-order-tracking/):
 
-A interface fica em [`react-app/`](react-app/README.md), organizada por
-funcionalidades de autenticação, pedidos e produtos. Com o backend desta branch
-rodando na porta 8080, abra outro terminal:
+- [Proposta](openspec/changes/archive/2026-10-20-delivery-order-tracking/proposal.md)
+- [Design técnico](openspec/changes/archive/2026-10-20-delivery-order-tracking/design.md)
+- [Autenticação](openspec/changes/archive/2026-10-20-delivery-order-tracking/specs/user-auth/spec.md)
+- [Catálogo](openspec/changes/archive/2026-10-20-delivery-order-tracking/specs/product-catalog/spec.md)
+- [Pedidos](openspec/changes/archive/2026-10-20-delivery-order-tracking/specs/order-tracking/spec.md)
+- [Tarefas](openspec/changes/archive/2026-10-20-delivery-order-tracking/tasks.md)
+
+Com o CLI OpenSpec instalado, valide o planejamento com:
 
 ```sh
-cd react-app
-npm ci
-npm run dev
+openspec validate --specs --strict
 ```
 
-Acesse `http://localhost:3000`. O proxy do Vite encaminha `/api` ao Java. A área
-de cliente oferece criação e acompanhamento de pedidos; a área de operador
-permite atender pedidos e manter o catálogo. A sessão é mantida em memória e
-exige novo login após recarregar a página. Veja os comandos de teste e implantação
-no README do frontend e os resultados em [`react-app/VERIFICATION.md`](react-app/VERIFICATION.md).
+O planejamento da interface React está em [`openspec/changes/archive/2026-10-20-react-order-tracker/`](openspec/changes/archive/2026-10-20-react-order-tracker/), com as 21 tarefas concluídas.
 
-`GET /api/auth/me` exige `Authorization: Bearer <token>` e retorna somente
-`id`, `name`, `email` e `role` do usuário autenticado. Não aceita identidade ou
-perfil escolhido pelo navegador. Tokens inválidos ou expirados recebem 401.
-
-Os controllers permitem CORS da origem de desenvolvimento `http://localhost:3000`,
-incluindo preflight com `Authorization` e `Content-Type`. As regras de autorização
-continuam aplicadas às requisições reais; CORS não concede permissões de operador.
+As especificações consolidadas estão em [`openspec/specs/`](openspec/specs/). O CLI OpenSpec é necessário apenas para validar e manter as especificações; não é requisito para executar a aplicação.

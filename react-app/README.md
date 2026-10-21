@@ -1,6 +1,10 @@
 # Mesa — interface do Mini Order Tracker
 
-Requer Node compatível com as versões registradas em package-lock.json e o backend Java em execução.
+Interface React e TypeScript do Mini Order Tracker. Para configurar e executar o sistema completo, siga o [guia principal](../README.md).
+
+## Desenvolvimento local
+
+Requer **Node.js 24.15.0 ou superior da série 24**, com npm, e o backend Java em execução em `http://localhost:8080`. Os comandos abaixo devem ser executados na pasta `react-app/`:
 
 ```sh
 npm ci
@@ -8,9 +12,11 @@ npm run dev
 ```
 
 Abra http://localhost:3000. O Vite exige a porta 3000 livre e encaminha `/api`
-para http://localhost:8080, preservando as rotas da API. Não existe campo `proxy`
-no package.json: o proxy está em vite.config.ts. O arquivo .env.example explica a
-configuração local. Não coloque credenciais no frontend.
+para http://localhost:8080, preservando as rotas da API. O proxy está em `vite.config.ts`: se mudar a porta do backend, ajuste seu destino.
+Não é necessário criar `.env` nesta pasta; o `.env.example` contém apenas orientações.
+As credenciais do operador e o segredo JWT pertencem ao `.env` da raiz.
+
+## Testes e build
 
 ```sh
 npm test
@@ -18,10 +24,16 @@ npm run typecheck
 npm run build
 ```
 
+O build gera a pasta `dist/`.
+
+## Sessão e permissões
+
 A sessão fica apenas em memória. Recarregar a página exige novo login. Sair ou
 receber 401 encerra a sessão e limpa seus dados. Cadastro concluído leva ao login.
 Os perfis e as permissões são determinados pelo backend, inclusive quando alguém
 abre uma URL diretamente.
+
+## Implantação
 
 Para publicar, sirva `dist/` por HTTPS com fallback das rotas SPA para index.html e
 reverse proxy de `/api` ao backend na mesma origem. O proxy do Vite é apenas para
@@ -39,7 +51,7 @@ oferece um link para consultar os pedidos. A resposta de criação é mantida em
 memória durante a sessão para exibir a confirmação mesmo se a listagem falhar.
 
 Operador: use a conta provisionada pelas variáveis `OPERATOR_NAME`,
-`OPERATOR_EMAIL` e `OPERATOR_PASSWORD` do backend (veja o README da raiz).
+`OPERATOR_EMAIL` e `OPERATOR_PASSWORD` do backend (veja o [README da raiz](../README.md)).
 Em **Produtos**, cadastre nome e preço, edite e marque a disponibilidade. Um
 catálogo vazio mostra instruções para cadastrar o primeiro produto. Em **Pedidos**,
 inicie o preparo, envie para entrega e conclua na sequência; é possível cancelar
@@ -66,6 +78,8 @@ Sem essas duas variáveis, o teste é explicitamente ignorado. Use
 `http://localhost:3000` para respeitar a origem CORS configurada; `127.0.0.1` é
 outra origem. O teste verifica as duas áreas e salva capturas em `/tmp/mesa-*.png`.
 
-Organização: `app/` compõe rotas e providers; `features/auth`, `features/orders`
+## Organização
+
+Os diretórios a seguir ficam em `src/`: `app/` compõe rotas e providers; `features/auth`, `features/orders`
 e `features/products` agrupam contratos, API, componentes e páginas; `shared/`
 contém cliente HTTP, consulta com atualização periódica, layouts e formatação.
