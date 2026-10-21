@@ -42,7 +42,7 @@ public class SecurityConfig {
         return decoder;
     }
     @Bean SecurityFilterChain security(HttpSecurity http,UserRepository users) throws Exception {
-        http.csrf(csrf->csrf.disable()).sessionManagement(s->s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        http.cors(org.springframework.security.config.Customizer.withDefaults()).csrf(csrf->csrf.disable()).sessionManagement(s->s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(a->a
                 .requestMatchers(HttpMethod.POST,"/api/auth/register","/api/auth/login").permitAll()
                 .requestMatchers(HttpMethod.POST,"/api/products").hasRole("OPERADOR")

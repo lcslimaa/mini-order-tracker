@@ -187,3 +187,13 @@ Defina `H2_CONSOLE_ENABLED=true` no `.env` e reinicie a aplicação. Acesse `htt
 - Password: vazia por padrão, ou o valor de `DATABASE_PASSWORD`.
 
 Clique em **Connect**. O console usa as credenciais do banco, não as do operador, e aceita apenas conexões locais. A flag é desabilitada por padrão e no `.env.example`; mantenha-a desabilitada fora do desenvolvimento local. A liberação das páginas e frames do console não altera a autenticação JWT da API.
+
+## Interface React e identidade
+
+`GET /api/auth/me` exige `Authorization: Bearer <token>` e retorna somente
+`id`, `name`, `email` e `role` do usuário autenticado. Não aceita identidade ou
+perfil escolhido pelo navegador. Tokens inválidos ou expirados recebem 401.
+
+Os controllers permitem CORS da origem de desenvolvimento `http://localhost:3000`,
+incluindo preflight com `Authorization` e `Content-Type`. As regras de autorização
+continuam aplicadas às requisições reais; CORS não concede permissões de operador.

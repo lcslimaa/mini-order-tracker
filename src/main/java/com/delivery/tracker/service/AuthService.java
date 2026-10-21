@@ -19,6 +19,11 @@ public class AuthService {
     public AuthService(UserRepository users,PasswordEncoder passwords) {
         this.users=users; this.passwords=passwords; this.dummyHash=passwords.encode("dummy-login-password");
     }
+    @Transactional(readOnly=true)
+    public com.delivery.tracker.dto.auth.UserResponse current(Long id) {
+        var user=users.findById(id).orElseThrow(()->new ApiException(401,"UNAUTHORIZED","Autenticação necessária ou inválida"));
+        return new com.delivery.tracker.dto.auth.UserResponse(user.getId(),user.getName(),user.getEmail(),user.getRole());
+    }
     public static void validatePassword(String password) {
         if (password == null || password.isBlank() || password.getBytes(StandardCharsets.UTF_8).length > 72) throw ApiException.invalid();
     }
